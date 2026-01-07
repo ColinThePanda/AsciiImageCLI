@@ -4,6 +4,7 @@ from utils import unpack_int24_array
 import numpy as np
 import time
 import sys
+import signal
 from audio_player import AudioPlayer
 
 class AsciiDisplayer:
@@ -55,8 +56,6 @@ class AsciiDisplayer:
 
     def display_video(self, video_path: str, play_audio: bool = True, color: bool = True):
         from video_extracter import extract_video
-        import signal
-        import sys
 
         # Setup terminal
         print("\033[?1049h\033[?25l\033[H\033[2J", end="") # seperate buffer, hide cursor, move cursor home, clear screen
@@ -108,4 +107,65 @@ class AsciiDisplayer:
             if player:
                 player.stream.stop()
                 player.stream.close()
+            cleanup()
+            
+    def display_camera(self, camera_index: int = 0, color: bool = True):
+        """Display live camera feed as ASCII art"""
+        import cv2
+        
+        # Setup terminal
+        print("\033[?1049h\033[?25l\033[H\033[2J", end="") # seperate buffer, hide cursor, move cursor home, clear screen
+        sys.stdout.flush()
+        
+        def cleanup():
+            print("\033[?25h\033[?1049l", end="") # restore cursor and restore buffer
+            sys.stdout.flush()
+        
+        def signal_handler(sig, frame):
+            cleanup()
+            sys.exit(0)
+        
+        signal.signal(signal.SIGINT, signal_handler)
+        signal.signal(signal.SIGTERM, signal_handler)
+        
+        # Open camera
+        cap = cv2.VideoCapture(camera_index)
+        
+        if not cap.isOpened():
+            print(f"Error: Could not open camera {camera_index}")
+            cleanup()
+            return
+        
+        # Get camera FPS (default 30)
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        if fps == 0 or fps > 60:
+            fps = 30
+        
+        frame_time = 1.0 / fps
+        
+        try:
+            last_time = time.time()
+            
+            while True:
+                ret, frame = cap.read()
+                
+                if not ret:
+                    print("Error: Failed to grab frame")
+                    break
+                
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) # convert bgr from camera to rgb
+                
+                image = Image.fromarray(frame_rgb)
+                
+                self.display_image(image, color)
+                
+                # Frame rate limiting
+                elapsed = time.time() - last_time
+                sleep_time = frame_time - elapsed
+                if sleep_time > 0:
+                    time.sleep(sleep_time)
+                last_time = time.time()
+                
+        finally:
+            cap.release()
             cleanup()

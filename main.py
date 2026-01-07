@@ -38,6 +38,13 @@ Examples:
     )
     
     parser.add_argument(
+        "-c", "--camera",
+        type=int,
+        default=0,
+        help="Index of camera to use (default: 0)"
+    )
+    
+    parser.add_argument(
         "--no-audio",
         action="store_true",
         help="Disable audio playback for videos"
@@ -51,21 +58,22 @@ Examples:
     
     args = parser.parse_args()
     
-    # Validate input file
-    if not os.path.exists(args.input):
-        print(f"Error: File '{args.input}' not found", file=sys.stderr)
-        sys.exit(1)
-    
-    # Determine file type
-    video_extensions = {'.mp4', '.avi', '.mov', '.mkv', '.webm', '.flv', '.wmv', '.m4v'}
-    image_extensions = {'.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff', '.webp'}
-    
-    ext = os.path.splitext(args.input)[-1].lower()
-    
-    if ext not in video_extensions and ext not in image_extensions:
-        print(f"Error: Unsupported file extension '{ext}'", file=sys.stderr)
-        print(f"Supported: {', '.join(sorted(video_extensions | image_extensions))}", file=sys.stderr)
-        sys.exit(1)
+    if args.input != "camera":
+        # Validate input file
+        if not os.path.exists(args.input):
+            print(f"Error: File '{args.input}' not found", file=sys.stderr)
+            sys.exit(1)
+        
+        # Determine file type
+        video_extensions = {'.mp4', '.avi', '.mov', '.mkv', '.webm', '.flv', '.wmv', '.m4v'}
+        image_extensions = {'.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff', '.webp'}
+        
+        ext = os.path.splitext(args.input)[-1].lower()
+        
+        if ext not in video_extensions and ext not in image_extensions:
+            print(f"Error: Unsupported file extension '{ext}'", file=sys.stderr)
+            print(f"Supported: {', '.join(sorted(video_extensions | image_extensions))}", file=sys.stderr)
+            sys.exit(1)
     
     # Create converter and displayer
     converter = AsciiConverter(num_ascii=args.num_ascii, chunk_size=args.block_size)
@@ -73,16 +81,19 @@ Examples:
     
     # Process file
     try:
-        if ext in video_extensions:
+        if args.input == "camera":
+            print("")
+            displayer.display_camera(camera_index=args.camera, color=not args.no_color)
+        elif ext in video_extensions:
             print(f"Playing video: {args.input}")
             displayer.display_video(
                 video_path=str(args.input),
                 play_audio=not args.no_audio,
-                color= not args.no_color
+                color=not args.no_color
             )
         else:
             print(f"Displaying image: {args.input}")
-            displayer.display_image(image=Image.open(args.input), color= not args.no_color)
+            displayer.display_image(image=Image.open(args.input), color=not args.no_color)
     except KeyboardInterrupt:
         print("\nInterrupted by user", file=sys.stderr)
         sys.exit(0)
