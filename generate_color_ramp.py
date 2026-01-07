@@ -36,6 +36,10 @@ def get_charmap(color_ramp: list[tuple[str, float]], levels: int = 8):
     if levels < 2:
         raise ValueError("levels must be >= 2")
     
+    if levels >= len(color_ramp):
+        color_ramp.sort(key=lambda x: x[1])
+        return "".join([char[0] for char in color_ramp])
+    
     quantized_values = [i/levels for i in range(levels + 1)]
     
     out_ramp = []
@@ -47,7 +51,3 @@ def get_charmap(color_ramp: list[tuple[str, float]], levels: int = 8):
                 best_char = (char, distance)
         out_ramp.append(best_char[0])
     return "".join(out_ramp)
-
-if __name__ == "__main__":
-    ramp = generate_color_ramp()
-    print(get_charmap(ramp))

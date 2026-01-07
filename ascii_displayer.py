@@ -16,37 +16,44 @@ class AsciiDisplayer:
         b = max(min(b, 255), 0)
         return f"\033[38;2;{r};{g};{b}m{text}"
 
-    def render_ascii(self, ascii_array: np.ndarray):
+    def render_ascii(self, ascii_array: np.ndarray, colored: bool):
         """
         Render a structured ASCII array to a colored string for terminal.
         
         ascii_array: np.ndarray with dtype [('char','<U1'),('color',np.uint32)]
         
-        Returns: str with ANSI color codes
+        Returns: str with ANSI color codes (or plain text if not colored)
         """
 
         lines = []
-        for row in ascii_array:
-            chars = np.char.multiply(row['char'], 2)
-            r, g, b = unpack_int24_array(row['color'])
-            line = ""
-            last_color = None
-            for ch, ri, gi, bi in zip(chars, r, g, b):
-                color = (ri, gi, bi)
-                if color != last_color:
-                    line += f"\033[38;2;{ri};{gi};{bi}m"
-                    last_color = color
-                line += ch
-            lines.append(line)
-        return "\n".join(lines) + "\033[0m"
+        if colored:
+            for row in ascii_array:
+                chars = np.char.multiply(row['char'], 2)
+                r, g, b = unpack_int24_array(row['color'])
+                line = ""
+                last_color = None
+                for ch, ri, gi, bi in zip(chars, r, g, b):
+                    color = (ri, gi, bi)
+                    if color != last_color:
+                        line += f"\033[38;2;{ri};{gi};{bi}m"
+                        last_color = color
+                    line += ch
+                lines.append(line)
+            return "\033[1;40m" + "\n".join(lines) + "\033[0m"
+        else:
+            for row in ascii_array:
+                chars = np.char.multiply(row['char'], 2)
+                line = "".join(chars)
+                lines.append(line)
+            return "\n".join(lines)
     
-    def display_image(self, image: Image.Image):
-        ascii = self.converter.get_ascii(image)
-        frame = self.render_ascii(ascii)
+    def display_image(self, image: Image.Image, color: bool = True):
+        ascii = self.converter.get_ascii(image, color)
+        frame = self.render_ascii(ascii, color)
         sys.stdout.write(f"\033[H{frame}")
         sys.stdout.flush()
 
-    def display_video(self, video_path: str, play_audio: bool = True):
+    def display_video(self, video_path: str, play_audio: bool = True, color: bool = True):
         from video_extracter import extract_video
         import signal
         import sys
@@ -89,7 +96,7 @@ class AsciiDisplayer:
                 if frame_idx - 1 < target_frame:
                     continue
                 
-                self.display_image(frame)
+                self.display_image(frame, color)
                 
                 # Sleep if extra time to cap fps to video frame rate
                 target_time = start_time + frame_idx * frame_time

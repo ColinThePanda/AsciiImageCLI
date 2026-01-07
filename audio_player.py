@@ -16,18 +16,15 @@ class AudioPlayer:
 
     def callback(self, outdata, frames, time_info, status):
         with self.lock:
-            # Take only the amount we need
             if len(self.buffer) >= frames:
                 outdata[:] = self.buffer[:frames]
                 self.buffer = self.buffer[frames:]
             else:
-                # Fill what we have, rest with zeros
                 outdata[:len(self.buffer)] = self.buffer
                 outdata[len(self.buffer):] = 0
                 self.buffer = np.empty((0, self.channels), dtype=np.float32)
 
     def start(self):
-        # Start stream
         self.stream = sd.OutputStream(
             samplerate=self.samplerate,
             channels=self.channels,
@@ -36,12 +33,11 @@ class AudioPlayer:
         )
         self.stream.start()
 
-        # Feeding thread
         def feed():
             for chunk in self.audio_gen:
                 # Make sure chunk is float32 and correct shape
                 if chunk.dtype != np.float32:
-                    chunk = chunk.astype(np.float32) / 32768.0  # int16 → float32
+                    chunk = chunk.astype(np.float32) / 32768.0  # int16 -> float32
                 if chunk.ndim == 1 and self.channels == 2:
                     chunk = np.stack([chunk, chunk], axis=-1)
                 elif chunk.ndim == 2 and chunk.shape[1] != self.channels:
