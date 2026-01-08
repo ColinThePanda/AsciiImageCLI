@@ -62,9 +62,9 @@ def compute_blocks(img: np.ndarray, cs: int, gray_levels: int, color: bool):
     return char_idx, colors
 
 class AsciiConverter:
-    def __init__(self, num_ascii: int = 8, chunk_size: int = 8):
+    def __init__(self, num_ascii: int = 8, chunk_size: int = 8, font_path: str = "CascadiaMono.ttf"):
         self.chunk_size: int = chunk_size
-        self.char_map = get_charmap(generate_color_ramp(), num_ascii)
+        self.char_map = get_charmap(generate_color_ramp(font_path=font_path), num_ascii)
         self.num_ascii: int = min(num_ascii, len(self.char_map))
     
     def quantize_grayscale(self, image: Image.Image) -> Image.Image:

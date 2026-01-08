@@ -1,0 +1,5 @@
+numpy
+Pillow
+numba
+sounddevice
+opencv-python

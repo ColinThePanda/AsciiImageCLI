@@ -46,6 +46,13 @@ Examples:
     )
     
     parser.add_argument(
+        "-f", "--font",
+        type=str,
+        default="CascadiaMono.ttf",
+        help="Path to font file to create the ASCII character set from"
+    )
+    
+    parser.add_argument(
         "--no-audio",
         action="store_true",
         help="Disable audio playback for videos"
@@ -76,14 +83,17 @@ Examples:
             print(f"Supported: {', '.join(sorted(video_extensions | image_extensions))}", file=sys.stderr)
             sys.exit(1)
     
+    if not os.path.exists(args.font):
+        print(f"Error: Font file '{args.font}' not found", file=sys.stderr)
+        sys.exit(1)
+    
     # Create converter and displayer
-    converter = AsciiConverter(num_ascii=args.num_ascii, chunk_size=args.block_size)
+    converter = AsciiConverter(num_ascii=args.num_ascii, chunk_size=args.block_size, font_path=args.font)
     displayer = AsciiDisplayer(converter)
     
     # Process file
     try:
         if args.input == "camera":
-            print("")
             displayer.display_camera(camera_index=args.camera, color=not args.no_color)
         elif ext in video_extensions:
             print(f"Playing video: {args.input}")

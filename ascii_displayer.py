@@ -112,13 +112,37 @@ class AsciiDisplayer:
     def display_camera(self, camera_index: int = 0, color: bool = True):
         """Display live camera feed as ASCII art"""
         import cv2
+        import os
         
-        # Setup terminal
-        print("\033[?1049h\033[?25l\033[H\033[2J", end="") # seperate buffer, hide cursor, move cursor home, clear screen
+        # Suppress OpenCV errors temporarily
+        devnull = open(os.devnull, 'w')
+        old_stderr = os.dup(2)
+        os.dup2(devnull.fileno(), 2)
+        
+        try:
+            # Try to open camera before setting up terminal for better errors
+            cap = cv2.VideoCapture(camera_index)
+            
+            # read test frame
+            ret, test_frame = cap.read()
+        finally:
+            # Restore stderr
+            os.dup2(old_stderr, 2)
+            os.close(old_stderr)
+            devnull.close()
+        
+        if not ret or test_frame is None:
+            cap.release()
+            print(f"Error: Could not open camera {camera_index}")
+            print("Make sure a camera is connected and is available")
+            return
+        
+        # Now we know camera works, setup terminal
+        print("\033[?1049h\033[?25l\033[H\033[2J", end="")
         sys.stdout.flush()
         
         def cleanup():
-            print("\033[?25h\033[?1049l", end="") # restore cursor and restore buffer
+            print("\033[?25h\033[?1049l", end="")
             sys.stdout.flush()
         
         def signal_handler(sig, frame):
@@ -127,14 +151,6 @@ class AsciiDisplayer:
         
         signal.signal(signal.SIGINT, signal_handler)
         signal.signal(signal.SIGTERM, signal_handler)
-        
-        # Open camera
-        cap = cv2.VideoCapture(camera_index)
-        
-        if not cap.isOpened():
-            print(f"Error: Could not open camera {camera_index}")
-            cleanup()
-            return
         
         # Get camera FPS (default 30)
         fps = cap.get(cv2.CAP_PROP_FPS)
@@ -150,10 +166,9 @@ class AsciiDisplayer:
                 ret, frame = cap.read()
                 
                 if not ret:
-                    print("Error: Failed to grab frame")
                     break
                 
-                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) # convert bgr from camera to rgb
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 
                 image = Image.fromarray(frame_rgb)
                 
