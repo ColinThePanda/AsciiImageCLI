@@ -209,20 +209,27 @@ class AsciiDisplayer:
             if decoder.is_video:
                 frame_time = 1.0 / decoder.fps
                 start_time = time.time()
-                
-                for frame_idx in range(len(decoder.frames)):
+                    
+                for frame_idx in range(len(decoder.get_all_frames())):
+                    elapsed = time.time() - start_time
+                    target_frame = int(elapsed * decoder.fps)
+                    
+                    # Skip frame if behind
+                    if frame_idx - 1 < target_frame:
+                        continue
+                    
                     ascii_array = decoder.to_ascii_array(frame_idx)
+                    
                     frame_str = self.render_ascii(ascii_array, decoder.has_color)
                     sys.stdout.write(f"\033[H{frame_str}")
                     sys.stdout.flush()
                     
-                    # Sleep to maintain frame rate
-                    target_time = start_time + (frame_idx + 1) * frame_time
+                    # Sleep if extra time to cap fps to video frame rate
+                    target_time = start_time + frame_idx * frame_time
                     sleep_time = target_time - time.time()
                     if sleep_time > 0:
                         time.sleep(sleep_time)
             else:
-                # Single image
                 ascii_array = decoder.to_ascii_array(0)
                 
                 # Scale if needed

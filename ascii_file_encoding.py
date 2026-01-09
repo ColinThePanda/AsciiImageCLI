@@ -226,7 +226,7 @@ class AsciiEncoder:
                 self.add_frame(char_indices, colors)
                 frame_count += 1
                 
-                if frame_count % 30 == 0:
+                if frame_count % 5 == 0:
                     print(f"Encoded {frame_count} frames...", end='\r')
             
             print(f"\nEncoded {frame_count} frames total")
@@ -237,7 +237,7 @@ class AsciiEncoder:
                 if audio_chunks:
                     audio_data = b''.join(audio_chunks)
                     self.set_audio(audio_data)
-                    print(f"Added {len(audio_data):,} bytes of audio")
+                    print(f"Added {format_file_size(len(audio_data))} bytes of audio")
             
             self.write(output_path)
             
