@@ -248,7 +248,7 @@ class AsciiDisplayer:
             pass  # Handle Ctrl+C gracefully
         
         finally:
-            if player:
+            if player and player.stream:
                 player.stream.stop()
                 player.stream.close()
             self._terminal_cleanup()

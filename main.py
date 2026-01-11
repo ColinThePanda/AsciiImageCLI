@@ -6,28 +6,10 @@ import os
 os.environ['PYTHONWARNINGS'] = 'ignore'
 
 import warnings
-warnings.filterwarnings('ignore')
-
-# Directly patch the resource tracker module
-try:
-    from multiprocessing import resource_tracker
-    
-    # Store original unregister
-    original_unregister = resource_tracker._resource_tracker.unregister
-    
-    def silent_unregister(name, rtype):
-        try:
-            return original_unregister(name, rtype)
-        except:
-            # Silently ignore cleanup errors
-            pass
-    
-    resource_tracker._resource_tracker.unregister = silent_unregister
-    
-    # Also patch the warnings in the resource tracker
-    resource_tracker.warnings = warnings
-except:
-    pass
+warnings.filterwarnings(
+    "ignore",
+    message=".*resource_tracker.*semaphore.*"
+)
 
 from ascii_converter import AsciiConverter
 from ascii_displayer import AsciiDisplayer
