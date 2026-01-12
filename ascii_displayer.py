@@ -55,7 +55,7 @@ class AsciiDisplayer:
     def render_image(self, image: Image.Image, color: bool = True):
         ascii = self.converter.get_ascii(image, color)
         frame = self.render_ascii(ascii, color)
-        sys.stdout.write(f"\033[H{frame}")
+        sys.stdout.write(f"\033[H\033[1m{frame}")
         sys.stdout.flush()
     
     def _terminal_cleanup(self):
