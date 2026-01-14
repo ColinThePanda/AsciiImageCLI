@@ -98,8 +98,8 @@ class AsciiEncoder:
         from PIL import Image
         
         if not converter or not displayer:
-            from ascii_converter import AsciiConverter
-            from ascii_displayer import AsciiDisplayer
+            from .ascii_converter import AsciiConverter
+            from .ascii_displayer import AsciiDisplayer
             converter = converter or AsciiConverter()
             displayer = displayer or AsciiDisplayer(converter)
         
@@ -125,10 +125,10 @@ class AsciiEncoder:
         import threading
         
         if not converter:
-            from ascii_converter import AsciiConverter
+            from .ascii_converter import AsciiConverter
             converter = converter or AsciiConverter()
         if not displayer:
-            from ascii_displayer import AsciiDisplayer
+            from .ascii_displayer import AsciiDisplayer
             displayer = displayer or AsciiDisplayer(converter)
         
         print(f"Encoding {video_path}...")

@@ -16,6 +16,7 @@ from web import create_video_server, ImageServer
 from PIL import Image
 import argparse
 import sys
+from importlib.resources import files
 
 def add_common_args(parser):
     """Add arguments common to both play and encode"""
@@ -147,7 +148,7 @@ def cmd_website(args):
         elif ext in video_extensions:
             with open("shaders/ascii.frag") as file:
                 frac_src = file.read()
-            font_path = os.path.join(os.path.dirname(__file__), "fonts", "font8x8.ttf")
+            font_path = str(files("pdasc.fonts").joinpath("font8x8.ttf"))
             charmap_img = render_charmap(get_charmap(generate_color_ramp(font_path=font_path), levels=16), font_path=font_path)
             converter = VideoAsciiConverter(frac_src, charmap_img, not args.no_color)
             out_path = process_video(converter, args.input, args.output, not args.no_audio)
@@ -156,7 +157,7 @@ def cmd_website(args):
         else:
             print("Invalid input for website. Must be a valid video file or not specified")
     else:
-        app = ImageServer(font_path=os.path.join(os.path.dirname(__file__), "fonts", "CascadiaMono.ttf"))
+        app = ImageServer(font_path=str(files("pdasc.fonts").joinpath("CascadiaMono.ttf")))
         app.run(port=args.port)
 
 def main():
@@ -174,14 +175,20 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  %(prog)s play image.png
-  %(prog)s play video.mp4 --no-audio
-  %(prog)s play camera -c 0
-  %(prog)s play image.jpg -b 16 -n 70
+  %(prog)s image.png
+  %(prog)s video.mp4 --no-audio
+  %(prog)s camera -c 0
+  %(prog)s image.jpg -b 16 -n 70
         """
     )
     
     add_common_args(play_parser)
+    
+    play_parser.add_argument(
+        "input",
+        type=str,
+        help='Path to input file or "camera" for camera input'
+    )
     
     play_parser.add_argument(
         "-c", "--camera",
@@ -205,8 +212,8 @@ Examples:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  %(prog)s encode video.mp4 -o output.asc
-  %(prog)s encode image.png -o output.asc --no-color
+  %(prog)s video.mp4 -o output.asc
+  %(prog)s image.png -o output.asc --no-color
         """
     )
     
@@ -233,7 +240,9 @@ Examples:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Usage:
-  %(prog)s website
+  %(prog)s
+  %(prog)s video.mp4
+  %(prog)s ascii_video.asc.mp4
         """
     )
     

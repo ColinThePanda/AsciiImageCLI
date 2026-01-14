@@ -1,0 +1,6 @@
+include README.md
+include LICENSE
+recursive-include pdasc/fonts *.ttf
+recursive-include web/image_controller/templates *.html
+recursive-include web/video_player/templates *.html
+recursive-include shaders *.frag
