@@ -3,20 +3,22 @@
 A high-performance terminal-based ASCII art converter that transforms images, videos, and live camera feeds into colored ASCII art. Features hardware-accelerated processing with Numba, custom font-based character mapping, and a proprietary `.asc` file format with Zstandard compression for instant playback.
 
 ![Demo Image](docs/demo_image.png)
-*Example: High-resolution image converted to colored ASCII art*
+_High-resolution image converted to colored ASCII art_
 
-![Demo Video](docs/demo_video.gif)
-*Example: Video playback with synchronized audio*
+![Demo Video](docs/demo_video.gif )<br>
+_Video playback at 24fps_
 
 ## Features
 
 - **Multiple Input Sources**
+
   - Static images (PNG, JPG, GIF, BMP, TIFF, WebP)
   - Video files (MP4, AVI, MOV, MKV, WebM, FLV, WMV, M4V)
   - Live camera feed with real-time processing
   - Pre-encoded `.asc` files for instant playback
 
 - **Advanced Processing**
+
   - Hardware-accelerated conversion using Numba JIT compilation
   - Customizable character sets generated from any TrueType font
   - Configurable ASCII density (number of characters used)
@@ -24,17 +26,20 @@ A high-performance terminal-based ASCII art converter that transforms images, vi
   - Full RGB color support with terminal ANSI 24-bit color codes
 
 - **Audio Support**
+
   - Synchronized audio playback for videos
   - Real-time audio streaming during live camera mode
   - PCM16 audio encoding in `.asc` format
 
 - **Instant Playback**
+
   - Custom `.asc` (ASCII Container) binary format with Zstandard compression
   - Pre-rendered ANSI escape sequences stored directly
   - Minimal processing overhead during playback (decompression only)
   - Frame-accurate synchronization with audio
 
 - **Web Interface**
+
   - Interactive image converter with real-time preview
   - Adjustable sliders for ASCII density and block size
   - Color toggle for colored/grayscale output
@@ -236,17 +241,17 @@ The website will be available at `http://localhost:5000` by default.
 
 ### Command Options
 
-| Option | Short | Default | Description | Availability |
-|--------|-------|---------|-------------|--------------|
-| `--block-size` | `-b` | `8` | Size of character blocks (pixels per character). Must be a factor of image dimensions. Higher = lower resolution but better performance | `play` (except with `--website`), `encode` |
-| `--num-ascii` | `-n` | `8` | Number of ASCII characters to use (2-95, capped at available characters). Higher = more detail in grayscale gradients | `play`, `encode` |
-| `--font` | `-f` | `fonts/CascadiaMono.ttf` | Path to TrueType font file for character generation | `play`, `encode` |
-| `--no-color` | - | `False` | Disable color output (grayscale only) | `play`, `encode` |
-| `--no-audio` | - | `False` | Disable audio playback for videos | `play`, `encode` |
-| `--camera` | `-c` | `0` | Camera index when using camera input | `play` |
-| `--output` | `-o` | `ascii_out.asc` | Output file path | `encode`, `play --website` |
-| `--debug` | - | `False` | Enable debug mode to show FPS and other debug info | `play` |
-| `--website` | - | `False` | Open a local website to display the ASCII video | `play` |
+| Option         | Short | Default                  | Description                                                                                                                             | Availability                               |
+| -------------- | ----- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| `--block-size` | `-b`  | `8`                      | Size of character blocks (pixels per character). Must be a factor of image dimensions. Higher = lower resolution but better performance | `play` (except with `--website`), `encode` |
+| `--num-ascii`  | `-n`  | `8`                      | Number of ASCII characters to use (2-95, capped at available characters). Higher = more detail in grayscale gradients                   | `play`, `encode`                           |
+| `--font`       | `-f`  | `fonts/CascadiaMono.ttf` | Path to TrueType font file for character generation                                                                                     | `play`, `encode`                           |
+| `--no-color`   | -     | `False`                  | Disable color output (grayscale only)                                                                                                   | `play`, `encode`                           |
+| `--no-audio`   | -     | `False`                  | Disable audio playback for videos                                                                                                       | `play`, `encode`                           |
+| `--camera`     | `-c`  | `0`                      | Camera index when using camera input                                                                                                    | `play`                                     |
+| `--output`     | `-o`  | `ascii_out.asc`          | Output file path                                                                                                                        | `encode`, `play --website`                 |
+| `--debug`      | -     | `False`                  | Enable debug mode to show FPS and other debug info                                                                                      | `play`                                     |
+| `--website`    | -     | `False`                  | Open a local website to display the ASCII video                                                                                         | `play`                                     |
 
 **Note on block size:** The block size must be a factor of both the image width and height, and must not be larger than the image dimensions. If invalid, the program will fail.
 
@@ -279,14 +284,14 @@ The `.asc` format prioritizes **instant playback** over storage efficiency. By p
 
 #### Header (24 bytes)
 
-| Offset | Size | Type   | Description                                     |
-|--------|------|--------|-------------------------------------------------|
-| 0x00   | 4    | char   | Magic number: "ASII" (ASCII with compression)   |
-| 0x04   | 2    | uint16 | Version number (currently 2)                    |
-| 0x06   | 2    | uint16 | Flags (bit field)                               |
-| 0x08   | 4    | float  | FPS (frames per second)                         |
-| 0x0C   | 4    | uint32 | Frame count                                     |
-| 0x10   | 8    | -      | Reserved for future use                         |
+| Offset | Size | Type   | Description                                   |
+| ------ | ---- | ------ | --------------------------------------------- |
+| 0x00   | 4    | char   | Magic number: "ASII" (ASCII with compression) |
+| 0x04   | 2    | uint16 | Version number (currently 2)                  |
+| 0x06   | 2    | uint16 | Flags (bit field)                             |
+| 0x08   | 4    | float  | FPS (frames per second)                       |
+| 0x0C   | 4    | uint32 | Frame count                                   |
+| 0x10   | 8    | -      | Reserved for future use                       |
 
 #### Flags (bit field)
 
@@ -300,20 +305,20 @@ Bits 2-15: Reserved
 
 Following the header, frame lengths are stored for quick random access:
 
-| Offset   | Size     | Type   | Description                              |
-|----------|----------|--------|------------------------------------------|
-| variable | 4        | uint32 | Frame 1 uncompressed length (bytes)      |
-| +4       | 4        | uint32 | Frame 2 uncompressed length (bytes)      |
-| ...      | ...      | ...    | ... (one entry per frame)                |
+| Offset   | Size | Type   | Description                         |
+| -------- | ---- | ------ | ----------------------------------- |
+| variable | 4    | uint32 | Frame 1 uncompressed length (bytes) |
+| +4       | 4    | uint32 | Frame 2 uncompressed length (bytes) |
+| ...      | ...  | ...    | ... (one entry per frame)           |
 
 #### Compressed Frame Data
 
 After the frame index:
 
-| Offset   | Size     | Type   | Description                              |
-|----------|----------|--------|------------------------------------------|
-| variable | 4        | uint32 | Compressed data size (bytes)             |
-| +4       | variable | bytes  | Zstandard-compressed frame data          |
+| Offset   | Size     | Type   | Description                     |
+| -------- | -------- | ------ | ------------------------------- |
+| variable | 4        | uint32 | Compressed data size (bytes)    |
+| +4       | variable | bytes  | Zstandard-compressed frame data |
 
 The compressed data contains all frames concatenated together. Each frame string contains:
 
@@ -332,13 +337,13 @@ The compressed data contains all frames concatenated together. Each frame string
 
 If `HAS_AUDIO` flag is set, audio data follows the compressed frames:
 
-| Offset   | Size     | Type   | Description                    |
-|----------|----------|--------|--------------------------------|
-| variable | 4        | uint32 | Audio data size in bytes       |
-| +4       | 1        | uint8  | Audio format (1 = PCM16)       |
-| +5       | 4        | uint32 | Sample rate (Hz)               |
-| +9       | 1        | uint8  | Number of channels             |
-| +10      | variable | bytes  | Raw PCM16 audio data           |
+| Offset   | Size     | Type   | Description              |
+| -------- | -------- | ------ | ------------------------ |
+| variable | 4        | uint32 | Audio data size in bytes |
+| +4       | 1        | uint8  | Audio format (1 = PCM16) |
+| +5       | 4        | uint32 | Sample rate (Hz)         |
+| +9       | 1        | uint8  | Number of channels       |
+| +10      | variable | bytes  | Raw PCM16 audio data     |
 
 ### Why Use .asc Files?
 
@@ -449,19 +454,19 @@ When playing `.asc` files:
 
 ### Block Size vs. Quality
 
-| Block Size | Resolution | Performance      | Use Case                         |
-|------------|------------|------------------|----------------------------------|
-| 4×4        | Very High  | Good             | High-quality images and videos   |
-| 8×8        | High       | Better           | Default, recommended             |
-| 16×16      | Medium     | Best             | Lower-end hardware               |
-| 32×32      | Low        | Fastest          | Very limited hardware            |
+| Block Size | Resolution | Performance | Use Case                       |
+| ---------- | ---------- | ----------- | ------------------------------ |
+| 4×4        | Very High  | Good        | High-quality images and videos |
+| 8×8        | High       | Better      | Default, recommended           |
+| 16×16      | Medium     | Best        | Lower-end hardware             |
+| 32×32      | Low        | Fastest     | Very limited hardware          |
 
 **Note:** Block size affects encoding time and output quality. Playback performance depends mainly on decompression speed. Block size must be a factor of both image width and height.
 
 ### Number of ASCII Characters
 
 | Num ASCII | Detail | Character Set Size | Use Case                    |
-|-----------|--------|--------------------|-----------------------------|
+| --------- | ------ | ------------------ | --------------------------- |
 | 4-16      | Low    | Small              | Artistic effect, retro look |
 | 32-64     | Medium | Medium             | Good balance                |
 | 70-95     | High   | Large              | Maximum detail preservation |
@@ -483,8 +488,8 @@ When playing `.asc` files:
 python cli.py play landscape.png -n 50 -b 8
 ```
 
-![Landscape Example](docs/example_landscape.png)
-*Landscape image with 50 ASCII characters*
+![Landscape Example](docs/landscape.png)
+_Landscape image with 50 ASCII characters_
 
 ### Example 2: Webcam Streaming
 
@@ -492,17 +497,17 @@ python cli.py play landscape.png -n 50 -b 8
 python cli.py play camera -b 12 -n 40
 ```
 
-![Webcam Example](docs/example_webcam.gif)
-*Real-time webcam feed at 30 FPS*
+![Webcam Example](docs/camera.gif)<br>
+_Real-time webcam feed at 30 FPS_
 
 ### Example 3: Grayscale Art
 
 ```bash
-python cli.py play artwork.png --no-color -n 95
+python cli.py play artwork.png --no-color -n 95 -b 2
 ```
 
-![Grayscale Example](docs/example_grayscale.png)
-*Black and white image with maximum character variety*
+![Grayscale Example](docs/painting_grayscale.png)
+_Black and white image with maximum character variety and resolution_
 
 ### Example 4: Interactive Web Interface
 
