@@ -8,7 +8,7 @@ import subprocess
 import os
 
 class VideoAsciiConverter:
-    def __init__(self, fragment_shader_src: str, ascii_img: Image.Image, colored: bool = True):
+    def __init__(self, fragment_shader_src: str, ascii_img: Image.Image, num_ascii: int = 8, colored: bool = True):
         self.colored = colored
         
         self.ctx = moderngl.create_standalone_context()
@@ -33,6 +33,7 @@ class VideoAsciiConverter:
         )
         
         self.prog["colored"] = self.colored
+        self.prog["num_ascii"] = num_ascii
         
         width, height = ascii_img.size
         ascii_img_data = ascii_img.tobytes()

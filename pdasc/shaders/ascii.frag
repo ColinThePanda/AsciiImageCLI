@@ -7,7 +7,7 @@ uniform sampler2D tex;
 uniform sampler2D ascii_map;
 uniform bool colored;
 
-uniform int downscale_factor = 10;
+uniform int num_ascii = 10;
 uniform int ascii_size = 8;
 
 float get_ascii(float lum)
@@ -43,7 +43,7 @@ void main()
     vec2 texSize = vec2(textureSize(tex, 0));
 
     // Sample original texture in blocks (downscale)
-    vec2 scaledUV = floor(uv * texSize / float(downscale_factor)) * float(downscale_factor) / texSize;
+    vec2 scaledUV = floor(uv * texSize / float(num_ascii)) * float(num_ascii) / texSize;
 
     vec3 color = texture(tex, scaledUV).rgb;
 

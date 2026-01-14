@@ -3,6 +3,7 @@
 # Suppress resource_tracker semaphore warnings from sounddevice
 # Must be done before any other imports
 import os
+import sys
 os.environ['PYTHONWARNINGS'] = 'ignore'
 
 import warnings
@@ -11,11 +12,13 @@ warnings.filterwarnings(
     message=".*resource_tracker.*semaphore.*"
 )
 
+# add root to path to import from core
+sys.path.insert(0, os.path.join(__file__, "../"))
+
 from core import AsciiConverter, AsciiDisplayer, AsciiEncoder, generate_color_ramp, get_charmap, render_charmap, VideoAsciiConverter, process_video
 from web import create_video_server, ImageServer
 from PIL import Image
 import argparse
-import sys
 from importlib.resources import files
 
 def add_common_args(parser):
@@ -37,7 +40,7 @@ def add_common_args(parser):
     parser.add_argument(
         "-f", "--font",
         type=str,
-        default=os.path.join(os.path.dirname(__file__), "fonts", "CascadiaMono.ttf"),
+        default=files("pdasc.fonts").joinpath("CascadiaMono.ttf"),
         help="Path to font file to create the ASCII character set from and to display on the website"
     )
     
@@ -146,11 +149,11 @@ def cmd_website(args):
             app = create_video_server(args.input)
             app.run()
         elif ext in video_extensions:
-            with open("shaders/ascii.frag") as file:
+            with open(str(files("pdasc.shaders").joinpath("ascii.frag"))) as file:
                 frac_src = file.read()
             font_path = str(files("pdasc.fonts").joinpath("font8x8.ttf"))
-            charmap_img = render_charmap(get_charmap(generate_color_ramp(font_path=font_path), levels=16), font_path=font_path)
-            converter = VideoAsciiConverter(frac_src, charmap_img, not args.no_color)
+            charmap_img = render_charmap(get_charmap(generate_color_ramp(font_path=font_path), levels=args.num_ascii), font_path=font_path)
+            converter = VideoAsciiConverter(frac_src, charmap_img, args.num_ascii, not args.no_color)
             out_path = process_video(converter, args.input, args.output, not args.no_audio)
             app = create_video_server(out_path)
             app.run()
@@ -252,6 +255,13 @@ Usage:
         type=str,
         default=None,
         help='Path to video to display on website (optional)'
+    )
+    
+    website_parser.add_argument(
+        "-n", "--num-ascii",
+        type=int,
+        default=8,
+        help="Number of ASCII characters to use (default: 8)"
     )
     
     website_parser.add_argument(
