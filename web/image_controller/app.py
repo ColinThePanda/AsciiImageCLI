@@ -9,10 +9,10 @@ from core import AsciiConverter, AsciiDisplayer
 from typing import Any
 
 class ImageServer:
-    def __init__(self) -> None:
+    def __init__(self, font_path: str | None = None) -> None:
         self.app = Flask(__name__)
         self._setup_app()
-        self.converter = AsciiConverter()
+        self.converter = AsciiConverter(font_path=font_path) if font_path else AsciiConverter()
         self.displayer = AsciiDisplayer(self.converter)
         self.colored = True
 

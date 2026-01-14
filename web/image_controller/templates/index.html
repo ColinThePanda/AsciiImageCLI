@@ -218,6 +218,10 @@
           <input type="checkbox" id="colored" checked />
         </label>
       </div>
+
+      <button class="upload-btn" id="download-btn" style="display: none">
+        Download ASCII
+      </button>
     </div>
 
     <div class="main-content" id="drop-zone">
@@ -238,6 +242,7 @@
       const coloredCheckbox = document.getElementById("colored");
       const asciiOutput = document.getElementById("ascii-output");
       const dropZone = document.getElementById("drop-zone");
+      const downloadBtn = document.getElementById("download-btn");
 
       // Drag and drop handlers
       dropZone.addEventListener("dragover", (e) => {
@@ -285,6 +290,20 @@
           uploadedImage = file;
           generateAscii();
         }
+      });
+
+      // Download ASCII art
+      downloadBtn.addEventListener("click", () => {
+        const asciiText = asciiOutput.innerText;
+        const blob = new Blob([asciiText], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "ascii-art.txt";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
       });
 
       // Scale ASCII to fit container
@@ -335,6 +354,9 @@
           const html = await response.text();
           asciiOutput.innerHTML = html;
           asciiOutput.classList.remove("placeholder");
+
+          // Show download button
+          downloadBtn.style.display = "block";
 
           // Force immediate scale calculation before showing
           requestAnimationFrame(() => {

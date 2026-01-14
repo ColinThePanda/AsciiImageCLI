@@ -138,9 +138,9 @@ def cmd_encode(args):
         encoder.encode_image_to_asc(args.input, args.output, not args.no_color, converter)
 
 def cmd_website(args):
-    video_extensions = {'.mp4', '.avi', '.mov', '.mkv', '.webm', '.flv', '.wmv', '.m4v'}
-    ext = os.path.splitext(args.input)[-1].lower()
     if args.input:
+        video_extensions = {'.mp4', '.avi', '.mov', '.mkv', '.webm', '.flv', '.wmv', '.m4v'}
+        ext = os.path.splitext(args.input)[-1].lower()
         if os.path.splitext(os.path.splitext(args.input)[0])[-1].lower() == '.asc':
             app = create_video_server(args.input)
             app.run()
@@ -156,7 +156,7 @@ def cmd_website(args):
         else:
             print("Invalid input for website. Must be a valid video file or not specified")
     else:
-        app = ImageServer()
+        app = ImageServer(font_path=os.path.join(os.path.dirname(__file__), "fonts", "CascadiaMono.ttf"))
         app.run(port=args.port)
 
 def main():
@@ -239,8 +239,10 @@ Usage:
     
     website_parser.add_argument(
         "input",
+        nargs='?',
         type=str,
-        help='Path to input file or "camera" for camera input'
+        default=None,
+        help='Path to video to display on website (optional)'
     )
     
     website_parser.add_argument(
