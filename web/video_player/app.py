@@ -1,7 +1,5 @@
-from flask import Flask, render_template, Response, send_file, abort
+from flask import Flask, render_template, send_file
 from pathlib import Path
-import subprocess
-import os
 
 
 def create_video_server(video_path, title="ASCII Video Player", autoplay=False):

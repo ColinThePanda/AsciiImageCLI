@@ -6,8 +6,7 @@ sys.path.insert(0, os.path.join(__file__, "../../../"))
 from flask import Flask, render_template, request
 from PIL import Image
 from core import AsciiConverter, AsciiDisplayer
-import base64
-from io import BytesIO
+from typing import Any
 
 class ImageServer:
     def __init__(self) -> None:
@@ -79,9 +78,6 @@ class ImageServer:
         
         @self.app.route('/ascii', methods=['POST'])
         def ascii():
-            # Get form data
-            print(f"Form: {request.form}")
-            print(f"Files: {request.files}")
             num_ascii = request.form.get('num_ascii')
             block_size = request.form.get('block_size')
             colored = request.form.get('colored')
@@ -99,5 +95,5 @@ class ImageServer:
             frame = self.displayer.render_ascii(ascii, self.colored)
             return self._html_from_ansi(frame)
     
-    def run(self):
-        self.app.run()
+    def run(self, host: str | None = None, port: int | None = None, debug: bool | None = None, load_dotenv: bool = True, **options: Any):
+        self.app.run(host=host, port=port, debug=debug, load_dotenv=load_dotenv, **options)

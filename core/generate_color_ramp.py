@@ -66,5 +66,4 @@ def render_charmap(charmap: str, font_path="font8x8.ttf", font_size=8, padding=0
         x = i * (char_width + padding) + padding
         y = padding
         draw.text((x, y), ch, fill=255, font=font)
-
     return img

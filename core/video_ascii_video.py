@@ -120,9 +120,9 @@ def process_video(converter: VideoAsciiConverter, video_path: str, output_path: 
 
     if output_path == "":
         parts = os.path.splitext(os.path.basename(video_path))
-        output_path = os.path.join("output", f"ascii_{parts[0]}.asc{parts[-1]}")
+        output_path = f"ascii_{parts[0]}.asc{parts[-1]}"
     
-    if not os.path.exists(os.path.dirname(output_path)):
+    if os.path.dirname(output_path) and not os.path.exists(os.path.dirname(output_path)):
         os.mkdir(os.path.dirname(output_path))
 
     # Build ffmpeg command based on audio parameter
@@ -167,7 +167,7 @@ def process_video(converter: VideoAsciiConverter, video_path: str, output_path: 
         '-f', 'mp4',  # Force MP4 output format
         output_path
     ])
-
+    
     ffmpeg_process = None
     start = time.time()
     frame_count = 0

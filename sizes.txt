@@ -1,4 +1,5 @@
-5326 frames total 720p 4/3 (920x720) block-size 4 num-ascii 32 colored with sound
+5326 frames total 720p 4/3 (920x720) 48.3MB
+ block-size 4 num-ascii 32 colored with sound
 sound (uncompressed): 35.85 MB
 uncompressed: 3.62 GB
 zstd level 3: 761.93 MB

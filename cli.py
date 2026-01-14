@@ -36,7 +36,7 @@ def add_common_args(parser):
     parser.add_argument(
         "-f", "--font",
         type=str,
-        default="CascadiaMono.ttf",
+        default=os.path.join(os.path.dirname(__file__), "fonts", "CascadiaMono.ttf"),
         help="Path to font file to create the ASCII character set from and to display on the website"
     )
     
@@ -85,33 +85,15 @@ def cmd_play(args):
                 sys.exit(1)
             
             if ext == '.asc':
-                if args.website:
-                    print("Website not possible for .asc file. Overriding")
                 print(f"Playing .asc file: {args.input}")
                 displayer.display_asc_file(args.input, not args.no_audio)
             elif ext in video_extensions:
-                if os.path.splitext(os.path.splitext(args.input)[0])[-1].lower() == '.asc':
-                    if args.website:
-                        app = create_video_server(args.input)
-                        app.run()
-                    else:
-                        print(".vasc file must be displayed on website,")
-                elif args.website:
-                    with open("shaders/ascii.frag") as file:
-                        frac_src = file.read()
-                    charmap_img = render_charmap(get_charmap(generate_color_ramp(font_path="font8x8.ttf"), levels=16))
-                    charmap_img.save("charmap.png")
-                    converter = VideoAsciiConverter(frac_src, charmap_img, not args.no_color)
-                    out_path = process_video(converter, args.input, audio=not args.no_audio)
-                    app = create_video_server(out_path)
-                    app.run()
-                else:
-                    print(f"Playing video: {args.input}")
-                    displayer.display_video(
-                        video_path=args.input,
-                        play_audio=not args.no_audio,
-                        color=not args.no_color
-                    )
+                print(f"Playing video: {args.input}")
+                displayer.display_video(
+                    video_path=args.input,
+                    play_audio=not args.no_audio,
+                    color=not args.no_color
+                )
             else:
                 print(f"Displaying image: {args.input}")
                 displayer.display_image(image=Image.open(args.input), color=not args.no_color)
@@ -156,8 +138,26 @@ def cmd_encode(args):
         encoder.encode_image_to_asc(args.input, args.output, not args.no_color, converter)
 
 def cmd_website(args):
-    app = ImageServer()
-    app.run()
+    video_extensions = {'.mp4', '.avi', '.mov', '.mkv', '.webm', '.flv', '.wmv', '.m4v'}
+    ext = os.path.splitext(args.input)[-1].lower()
+    if args.input:
+        if os.path.splitext(os.path.splitext(args.input)[0])[-1].lower() == '.asc':
+            app = create_video_server(args.input)
+            app.run()
+        elif ext in video_extensions:
+            with open("shaders/ascii.frag") as file:
+                frac_src = file.read()
+            font_path = os.path.join(os.path.dirname(__file__), "fonts", "font8x8.ttf")
+            charmap_img = render_charmap(get_charmap(generate_color_ramp(font_path=font_path), levels=16), font_path=font_path)
+            converter = VideoAsciiConverter(frac_src, charmap_img, not args.no_color)
+            out_path = process_video(converter, args.input, args.output, not args.no_audio)
+            app = create_video_server(out_path)
+            app.run()
+        else:
+            print("Invalid input for website. Must be a valid video file or not specified")
+    else:
+        app = ImageServer()
+        app.run(port=args.port)
 
 def main():
     parser = argparse.ArgumentParser(
@@ -181,12 +181,6 @@ Examples:
         """
     )
     
-    play_parser.add_argument(
-        "input",
-        type=str,
-        help='Path to input file or "camera" for camera input'
-    )
-    
     add_common_args(play_parser)
     
     play_parser.add_argument(
@@ -200,12 +194,6 @@ Examples:
         "--debug",
         action="store_true",
         help="Enable debug mode to show FPS and other debug info"
-    )
-    
-    play_parser.add_argument(
-        "--website",
-        action="store_true",
-        help="Open a local website to display the ascii video"
     )
     
     play_parser.set_defaults(func=cmd_play)
@@ -232,7 +220,7 @@ Examples:
         "-o", "--output",
         type=str,
         default="ascii_out.asc",
-        help="Output file path (required)"
+        help="Output file path"
     )
     
     add_common_args(encode_parser)
@@ -241,12 +229,44 @@ Examples:
     
     website_parser = subparsers.add_parser(
         'website',
-        help='Open a flask website with a demo of image conversion and sliders',
+        help='Open image demo website or website to display ASCII shaded video',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Usage:
   %(prog)s website
         """
+    )
+    
+    website_parser.add_argument(
+        "input",
+        type=str,
+        help='Path to input file or "camera" for camera input'
+    )
+    
+    website_parser.add_argument(
+        "-o", "--output",
+        type=str,
+        default="",
+        help="Output file path"
+    )
+    
+    website_parser.add_argument(
+        "-p", "--port",
+        type=int,
+        default=5000,
+        help="Port to run website on"
+    )
+    
+    website_parser.add_argument(
+        "--no-color",
+        action="store_true",
+        help="Disable color output"
+    )
+    
+    website_parser.add_argument(
+        "--no-audio",
+        action="store_true",
+        help="Disable audio playback for videos"
     )
     
     website_parser.set_defaults(func=cmd_website)
