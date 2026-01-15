@@ -31,19 +31,19 @@ PDASC transforms multimedia content into colored ASCII art with hardware-acceler
 
 ## Installation
 
-### Recommended: Install with pipx
+### Install with pip
+
+```bash
+pip install PDASC
+```
+
+### Alternative: Install with pipx
 
 ```bash
 pipx install PDASC
 ```
 
-This installs PDASC in an isolated environment and makes the `pdasc` command available globally.
-
-### Alternative: Install with pip
-
-```bash
-pip install PDASC
-```
+This installs PDASC in an isolated environment and makes the `pdasc` command available globally. Note that pipx may require a C compiler on some platforms (particularly Windows).
 
 ### Prerequisites
 
