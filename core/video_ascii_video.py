@@ -348,9 +348,14 @@ class VideoAsciiConverter:
             self.ascii_tex.release()
         if hasattr(self, 'edges_tex'):
             self.edges_tex.release()
+        if hasattr(self, 'vbo'):  
+            self.vbo.release()  
+        for prog in self.programs.values():  
+            prog.release()  
         self.vaos.clear()
         self.textures.clear()
         self.framebuffers.clear()
+        self.programs.clear() 
 
 
 def process_video(converter: VideoAsciiConverter, video_path: str, 
@@ -478,9 +483,12 @@ def process_video(converter: VideoAsciiConverter, video_path: str,
                     pass
             
             # Wait for ffmpeg to finish
-            stderr_output = ffmpeg_process.communicate()[1]
-            if ffmpeg_process.returncode != 0:
-                print(f"\nFFmpeg error: {stderr_output.decode()}")
+            stderr_output = ffmpeg_process.communicate()[1]  
+            if ffmpeg_process.returncode != 0:  
+                if stderr_output:  
+                    print(f"\nFFmpeg error: {stderr_output.decode()}")  
+                else:  
+                    print(f"\nFFmpeg failed with return code: {ffmpeg_process.returncode}")  
         
         # Cleanup
         converter.cleanup()
