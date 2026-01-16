@@ -32,7 +32,6 @@ class VideoAsciiConverter:
             shader_dir_path: Path to directory containing shader files
             ascii_img: Texture atlas containing ASCII characters for fill (80x8 expected)
             edges_img: Texture atlas containing edge characters (32x8 expected)
-            num_ascii: Number of ASCII brightness levels (default: 8)
             colored: Whether to preserve color from original video (default: True)
         """
         self.colored = colored
@@ -175,6 +174,10 @@ class VideoAsciiConverter:
                 tex.filter = (moderngl.NEAREST, moderngl.NEAREST)
             else:
                 tex.filter = (moderngl.LINEAR, moderngl.LINEAR)
+            
+            tex.repeat_x = False
+            tex.repeat_y = False
+
         
         # Create framebuffers
         for name, tex in self.textures.items():
@@ -356,7 +359,7 @@ def process_video(converter: VideoAsciiConverter, video_path: str,
     Process a video file with ASCII art effect.
     
     Args:
-        converter: ASCIIVideoConverter instance
+        converter: VideoAsciiConverter instance
         video_path: Path to input video file
         output_path: Path to output video (auto-generated if empty)
         audio: Whether to preserve audio track

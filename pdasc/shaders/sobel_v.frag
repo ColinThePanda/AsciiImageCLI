@@ -14,9 +14,10 @@ void main() {
     float Gx = 3.0 * grad1.x + 10.0 * grad2.x + 3.0 * grad3.x;
     float Gy = 3.0 * grad1.y + 0.0 * grad2.y - 3.0 * grad3.y;
     
-    vec2 G = normalize(vec2(Gx, Gy));
+    vec2 G = vec2(Gx, Gy);
     float magnitude = length(vec2(Gx, Gy));
-    float theta = atan(G.y, G.x);
+    vec2 G_normalized = vec2(Gx, Gy) / magnitude;
+    float theta = atan(G_normalized.y, G_normalized.x);
     
     float mask = (isnan(theta) || isinf(theta)) ? 0.0 : 1.0;
     

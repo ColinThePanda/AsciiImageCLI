@@ -10,7 +10,7 @@ void main() {
     float lum3 = texture(tex, uv + vec2(1, 0) * texel_size).r;
     
     float Gx = 3.0 * lum1 + 0.0 * lum2 - 3.0 * lum3;
-    float Gy = 3.0 + lum1 + 10.0 * lum2 + 3.0 * lum3;
+    float Gy = 3.0 * lum1 + 10.0 * lum2 + 3.0 * lum3;
     
     fragColor = vec2(Gx, Gy);
 }

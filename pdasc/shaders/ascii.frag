@@ -20,20 +20,20 @@ void main() {
     ivec2 id = ivec2(uv * vec2(texSize));
     ivec2 gid = id % 8;
     ivec2 tileId = id / 8;
-    
+
     // Sample edge directions in 8x8 tile
     int buckets[4] = int[4](0, 0, 0, 0);
-    
+
     for (int y = 0; y < 8; y++) {
         for (int x = 0; x < 8; x++) {
             ivec2 sampleId = tileId * 8 + ivec2(x, y);
             vec3 sobel = texelFetch(sobel_tex, sampleId, 0).xyz;
-            
+
             float theta = sobel.y;
             float absTheta = abs(theta) / PI;
-            
+
             int direction = -1;
-            
+
             if (sobel.z > 0.5) {
                 if ((absTheta >= 0.0 && absTheta < 0.05) || (absTheta > 0.9 && absTheta <= 1.0)) 
                     direction = 0;
@@ -44,13 +44,13 @@ void main() {
                 else if (absTheta > 0.55 && absTheta < 0.9) 
                     direction = sign(theta) > 0.0 ? 3 : 2;
             }
-            
+
             if (direction >= 0 && direction < 4) {
                 buckets[direction]++;
             }
         }
     }
-    
+
     // Find most common direction
     int commonEdgeIndex = -1;
     int maxValue = 0;
@@ -60,9 +60,9 @@ void main() {
             maxValue = buckets[j];
         }
     }
-    
+
     if (maxValue < edge_threshold) commonEdgeIndex = -1;
-    
+
     // Get color from downsampled texture (box blur effect)
     vec4 lumData = texelFetch(luminance_tex, tileId, 0);
     vec3 tileColor = lumData.rgb;
