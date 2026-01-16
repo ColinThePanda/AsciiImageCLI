@@ -19,7 +19,7 @@ from core import AsciiConverter, AsciiDisplayer, AsciiEncoder, generate_color_ra
 from web import create_video_server, ImageServer
 from PIL import Image
 import argparse
-from importlib.resources import files
+from importlib.resources import files, as_file
 
 def add_common_args(parser):
     """Add arguments common to both play and encode"""
@@ -149,14 +149,16 @@ def cmd_website(args):
             app = create_video_server(args.input)
             app.run()
         elif ext in video_extensions:
-            with open(str(files("pdasc.shaders").joinpath("ascii.frag"))) as file:
-                frac_src = file.read()
-            font_path = str(files("pdasc.fonts").joinpath("font8x8.ttf"))
-            charmap_img = render_charmap(get_charmap(generate_color_ramp(font_path=font_path), levels=args.num_ascii), font_path=font_path)
-            converter = VideoAsciiConverter(frac_src, charmap_img, args.num_ascii, not args.no_color)
+            with as_file(files("pdasc.shader_images")) as shader_img_dir:
+                with Image.open(os.path.join(shader_img_dir, "fill_ascii.png")) as img:
+                    ascii_img = img.copy()
+                with Image.open(os.path.join(shader_img_dir, "edge_ascii.png")) as img:
+                    edges_img = img.copy()
+            with as_file(files("pdasc.shaders")) as shader_path:
+                converter = VideoAsciiConverter(str(shader_path), ascii_img, edges_img, not args.no_color)
             out_path = process_video(converter, args.input, args.output, not args.no_audio)
             app = create_video_server(out_path)
-            app.run()
+            app.run(port=args.port)
         else:
             print("Invalid input for website. Must be a valid video file or not specified")
     else:
@@ -255,13 +257,6 @@ Usage:
         type=str,
         default=None,
         help='Path to video to display on website (optional)'
-    )
-    
-    website_parser.add_argument(
-        "-n", "--num-ascii",
-        type=int,
-        default=8,
-        help="Number of ASCII characters to use (default: 8)"
     )
     
     website_parser.add_argument(
