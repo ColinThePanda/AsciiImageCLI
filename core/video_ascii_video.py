@@ -483,10 +483,10 @@ def process_video(converter: VideoAsciiConverter, video_path: str,
                     pass
             
             # Wait for ffmpeg to finish
-            stderr_output = ffmpeg_process.communicate()[1]  
-            if ffmpeg_process.returncode != 0:  
-                if stderr_output:  
-                    print(f"\nFFmpeg error: {stderr_output.decode()}")  
+            # Wait for ffmpeg to finish
+            ffmpeg_process.communicate()
+            if ffmpeg_process.returncode != 0:
+                print(f"\nFFmpeg failed with return code: {ffmpeg_process.returncode}")
                 else:  
                     print(f"\nFFmpeg failed with return code: {ffmpeg_process.returncode}")  
         
