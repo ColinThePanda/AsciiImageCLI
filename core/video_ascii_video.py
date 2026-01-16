@@ -483,9 +483,6 @@ def process_video(converter: VideoAsciiConverter, video_path: str,
                     pass
             
             # Wait for ffmpeg to finish
-            # Wait for ffmpeg to finish
-            ffmpeg_process.communicate()
-            # Wait for ffmpeg to finish
             ffmpeg_process.communicate()
             if ffmpeg_process.returncode != 0:
                 print(f"\nFFmpeg failed with return code: {ffmpeg_process.returncode}")
