@@ -2,7 +2,7 @@
 
 ## Panda ASCII
 
-**High-performance terminal ASCII art converter for images, videos, and live camera feeds**
+**High-performance terminal ASCII art converter for images, videos, live camera feeds, and retro game emulation**
 
 [![PyPI version](https://badge.fury.io/py/pdasc.svg)](https://pypi.org/project/PDASC/)
 [![Python](https://img.shields.io/pypi/pyversions/pdasc?style=flat-square&logo=python&logoColor=white)](https://pypi.org/project/PDASC/)
@@ -18,17 +18,18 @@
 
 ## Overview
 
-PDASC transforms multimedia content into colored ASCII art with hardware-accelerated processing. Features include Numba JIT compilation for near-C performance, a custom `.asc` file format with Zstandard compression for instant playback, and GPU-accelerated rendering for web deployment with edge detection support.
+PDASC transforms multimedia content into colored ASCII art with hardware-accelerated processing. Features include Numba JIT compilation for near-C performance, a custom `.asc` file format with Zstandard compression for instant playback, GPU-accelerated rendering for web deployment with edge detection support, and retro game emulation display powered by [pdretro](https://github.com/ColinThePanda/pdretro).
 
 ### Key Capabilities
 
-- **Multiple Input Sources**: Static images, video files, live camera feeds, pre-encoded `.asc` files
+- **Multiple Input Sources**: Static images, video files, live camera feeds, retro game emulation, pre-encoded `.asc` files
 - **Hardware Acceleration**: Numba JIT compilation and OpenGL shader-based rendering
 - **Advanced Processing**: Customizable character sets from TrueType fonts, adjustable ASCII density and block size
 - **Edge Detection**: Multi-pass rendering pipeline with Sobel edge detection for enhanced detail preservation
 - **Audio Support**: Synchronized PCM16 audio in `.asc` format with real-time streaming
 - **Instant Playback**: Pre-rendered ANSI sequences with Zstandard compression (5-38× compression ratio)
 - **Web Interface**: Interactive image converter and GPU-processed video player
+- **Emulator Support**: Play retro games in ASCII art with keyboard controls via [pdretro](https://github.com/ColinThePanda/pdretro)
 
 ## Installation
 
@@ -71,6 +72,11 @@ brew install ffmpeg
 - 24-bit color support (most modern terminals)
 - Test with: `printf "\x1b[38;2;255;100;0mTRUECOLOR\x1b[0m\n"`
 
+**For emulator support:**
+
+- Libretro cores (download from [RetroArch Buildbot](https://buildbot.libretro.com/nightly/))
+- Game ROMs (legally obtained)
+
 ## Quick Start
 
 ```bash
@@ -82,6 +88,9 @@ pdasc play video.mp4
 
 # Stream from webcam
 pdasc play camera
+
+# Play a retro game in ASCII (experimental)
+pdasc play emulator cores/snes9x_libretro.dll roms/game.sfc
 
 # Encode for instant playback
 pdasc encode video.mp4 -o output.asc
@@ -98,7 +107,7 @@ pdasc website video.mp4
 
 ### Commands
 
-#### `play` - Display images, videos, camera, or `.asc` files
+#### `play` - Display images, videos, camera, emulator, or `.asc` files
 
 ```bash
 pdasc play <input> [options]
@@ -107,6 +116,7 @@ pdasc play <input> [options]
 pdasc play photo.png -n 70 -b 4          # High detail image
 pdasc play video.mp4 --no-audio          # Silent video
 pdasc play camera -c 1 -n 32 -b 8        # Webcam with custom settings
+pdasc play emulator cores/snes9x_libretro.dll roms/mario.sfc -b 8 -n 32
 pdasc website video.mp4 -n 32            # GPU-rendered web video
 ```
 
@@ -115,6 +125,7 @@ pdasc website video.mp4 -n 32            # GPU-rendered web video
 - Image file path (PNG, JPG, GIF, BMP, TIFF, WebP)
 - Video file path (MP4, AVI, MOV, MKV, WebM, FLV, WMV, M4V)
 - `camera` for webcam input
+- `emulator <core_path> <rom_path>` for retro game emulation
 - `.asc` file path
 - `.asc.mp4` file path (GPU-processed)
 
@@ -157,6 +168,59 @@ pdasc website output.asc.mp4     # Play existing web video
 **Note on block size:** Must be a factor of both image width and height. Common values: 2, 4, 8, 16, 32.
 
 **Note on website mode:** GPU rendering with `website` only supports `-n` parameter, not `-b`.
+
+## Emulator Support (Experimental)
+
+PDASC can display retro games as ASCII art using [pdretro](https://github.com/ColinThePanda/pdretro), a Python wrapper for libretro cores.
+
+### Current Limitations
+
+⚠️ **Emulator support is very rudimentary in the current version:**
+
+- **Keyboard only**: Only keyboard input is supported
+- **Fixed keymap**: Uses RetroArch default keyboard layout (see below)
+- **No customization**: Keymapping configuration not yet available
+- **Future improvements**: Controller support and custom keymaps coming in future releases
+
+### Default Keyboard Controls
+
+```
+Arrow Keys       D-pad movement
+Z                B button (bottom)
+X                A button (right)
+A                Y button (left)
+S                X button (top)
+Q                L shoulder
+W                R shoulder
+E                L2 trigger
+R                R2 trigger
+Enter            START
+Right Shift      SELECT
+```
+
+### Getting Started with Emulation
+
+1. **Download a libretro core** from [RetroArch Buildbot](https://buildbot.libretro.com/nightly/)
+   - Example: `snes9x_libretro.dll` for SNES games
+   - Example: `mgba_libretro.dll` for Game Boy Advance
+
+2. **Obtain a ROM** (legally - from games you own)
+
+3. **Run the emulator**:
+   ```bash
+   pdasc play emulator cores/snes9x_libretro.dll roms/game.sfc -b 8 -n 32
+   ```
+
+### Performance Tips for Emulation
+
+- **Use `-b 3` or `-b 2`** for 60 FPS on most systems
+- **Add `--no-color`** for better performance (reduces processing)
+- **Reduce `-n`** value (e.g., `-n 16`) for faster rendering
+- **Close other applications** to free up CPU resources
+
+### About pdretro
+
+The emulation functionality is powered by [pdretro](https://github.com/ColinThePanda/pdretro), a headless libretro wrapper I created specifically for programmatic emulation control. It provides frame-by-frame emulation, audio capture, and input handling without GUI dependencies.
 
 ## Documentation
 
@@ -319,6 +383,8 @@ Browser playback uses ModernGL with OpenGL shaders (browsers cannot efficiently 
 
 | Block Size | Resolution | Performance | Use Case                       |
 | ---------- | ---------- | ----------- | ------------------------------ |
+| 2×2        | Very High  | Slower      | Emulator: maximum detail       |
+| 3×3        | Very High  | Good        | Emulator: 60 FPS sweet spot    |
 | 4×4        | Very High  | Good        | High-quality images and videos |
 | 8×8        | High       | Better      | **Default, recommended**       |
 | 16×16      | Medium     | Best        | Lower-end hardware             |
@@ -339,6 +405,7 @@ Browser playback uses ModernGL with OpenGL shaders (browsers cannot efficiently 
 3. **Video playback**: Always encode to `.asc` first
 4. **Web playback**: Use `website` command with GPU acceleration
 5. **Storage constraints**: Use grayscale (`--no-color`) for 5-8× smaller files
+6. **Emulator (60 FPS)**: Use `-b 2 -n 16` or `-b 3 -n 32` with `--no-color`
 
 ## Gallery
 
@@ -366,6 +433,14 @@ pdasc play artwork.png --no-color -n 95 -b 2
 
 ![Grayscale Example](docs/painting_grayscale.png)
 
+### Retro Game Emulation
+
+```bash
+pdasc play emulator cores/snes9x_libretro.dll roms/game.sfc -b 3 -n 32
+```
+
+_Emulator screenshot coming soon_
+
 ## Troubleshooting
 
 ### Camera Issues
@@ -390,6 +465,27 @@ ls /dev/video*
 **Audio out of sync:**
 
 - Always encode to `.asc` format for perfect synchronization
+
+### Emulator Issues
+
+**Game running too slow:**
+
+- Use smaller block size: `-b 2` or `-b 3`
+- Reduce ASCII characters: `-n 16` or `-n 24`
+- Disable color: `--no-color`
+- Close background applications
+
+**Input not working:**
+
+- Ensure keyboard focus is on terminal window
+- Try different keys (current keymap is fixed to RetroArch defaults)
+- Check that core and ROM are compatible
+
+**Core/ROM not loading:**
+
+- Verify core path is correct
+- Ensure ROM format matches core (e.g., `.sfc` for SNES)
+- Download cores from official RetroArch buildbot
 
 ### Terminal Display
 
@@ -434,10 +530,12 @@ See [LICENSE](LICENSE) for full text.
 - **PyPI**: https://pypi.org/project/PDASC/
 - **GitHub**: https://github.com/ColinThePanda/PDASC
 - **Issues**: https://github.com/ColinThePanda/PDASC/issues
+- **pdretro**: https://github.com/ColinThePanda/pdretro
 
 ## Credits
 
-GPU-accelerated ASCII video shader based on ["I Tried Turning Games Into Text"](https://www.youtube.com/watch?v=gg40RWiaHRY) by Acerola ([Garrett Gunnell](https://github.com/GarrettGunnell)).
+- GPU-accelerated ASCII video shader based on ["I Tried Turning Games Into Text"](https://www.youtube.com/watch?v=gg40RWiaHRY) by Acerola ([Garrett Gunnell](https://github.com/GarrettGunnell))
+- Emulation powered by [pdretro](https://github.com/ColinThePanda/pdretro) - a Python libretro wrapper
 
 ---
 
