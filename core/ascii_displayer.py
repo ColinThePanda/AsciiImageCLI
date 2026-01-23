@@ -8,6 +8,10 @@ from .ascii_converter import AsciiConverter
 from .utils import unpack_int24_array
 from .audio_player import AudioPlayer
 from .ascii_file_encoding import AsciiDecoder
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pdretro import Emulator
 
 class AsciiDisplayer:
     def __init__(self, converter: AsciiConverter, debug: bool = False):
@@ -66,6 +70,19 @@ class AsciiDisplayer:
             signal.signal(signal.SIGINT, signal.SIG_IGN)
             signal.signal(signal.SIGTERM, signal.SIG_IGN)
             
+            # Flush stdin buffer to prevent buffered input from showing after exit
+            try:
+                if sys.platform == 'win32':
+                    import msvcrt
+                    while msvcrt.kbhit():
+                        msvcrt.getch()
+                else:
+                    # Unix-like systems
+                    import termios
+                    termios.tcflush(sys.stdin, termios.TCIFLUSH)
+            except:
+                pass
+            
             # Write cleanup sequences atomically
             try:
                 cleanup_seq = "\033[0m\033[?25h\033[?1049l" # reset style, show cursor, old buffer
@@ -83,10 +100,10 @@ class AsciiDisplayer:
             import subprocess
             try:
                 subprocess.run(['stty', 'echo', 'icanon'], 
-                             stdin=sys.stdin, 
-                             stdout=subprocess.DEVNULL,
-                             stderr=subprocess.DEVNULL,
-                             timeout=0.5)
+                            stdin=sys.stdin, 
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL,
+                            timeout=0.5)
             except:
                 pass
     
@@ -247,7 +264,6 @@ class AsciiDisplayer:
         
         finally:
             if player and player.stream:
-                player.stream.stop()
                 player.stream.close()
             self._cleanup_terminal()
             
@@ -314,4 +330,98 @@ class AsciiDisplayer:
                 
         finally:
             cap.release()
+            self._cleanup_terminal()
+
+    def display_emulator(self, emulator, color: bool = True, play_audio: bool = True, enable_input: bool = True):
+        """Display ASCII art from an emulated source (headless, with optional audio)
+        
+        Args:
+            emulator: pdretro.Emulator instance with a loaded game
+            color: Whether to display in color
+            play_audio: Whether to play audio
+            enable_input: Whether to enable keyboard input
+        """
+        # Import here to avoid circular import and ensure it's available at runtime
+        from pdretro import Emulator
+        
+        if not isinstance(emulator, Emulator):
+            raise TypeError(f"Expected pdretro.Emulator, got {type(emulator)}")
+        
+        if not emulator.is_game_loaded:
+            raise RuntimeError("No game loaded in emulator")
+        
+        self._setup_terminal()
+        player = None
+        input_handler = None
+        
+        try:
+            # Setup input handler if enabled
+            if enable_input:
+                try:
+                    from core.input_handler import InputHandler
+                    input_handler = InputHandler(emulator)
+                    input_handler.start()
+                except ImportError:
+                    print("Warning: Could not import InputHandler, input disabled")
+            
+            frame_time = 1.0 / emulator.av_info.fps
+            start_time = time.time()
+            frame_idx = 0
+            
+            if play_audio:
+                audio_buffer = []
+                
+                def audio_gen():
+                    while True:
+                        if audio_buffer:
+                            yield audio_buffer.pop(0)
+                        else:
+                            time.sleep(0.001)
+                
+                player = AudioPlayer(
+                    audio_gen(),
+                    samplerate=int(emulator.av_info.sample_rate),
+                    channels=2
+                )
+                player.start()
+            
+            while True:
+                emulator.step()
+                
+                video_frame = emulator.get_video_frame()
+                if play_audio:
+                    audio_frame = emulator.get_audio_frame()
+                    if audio_frame.frames > 0:
+                        audio_buffer.append(audio_frame.data)
+                
+                frame_idx += 1
+                
+                rgb_image = Image.fromarray(video_frame.to_rgb(), 'RGB')
+                self.render_image(rgb_image, color)
+                
+                if self.debug:
+                    current_time = time.time()
+                    actual_fps = frame_idx / (current_time - start_time)
+                    sys.stdout.write(f"\n\033[2KFPS: {round(actual_fps)}")
+                    sys.stdout.flush()
+                
+                target_time = start_time + frame_idx * frame_time
+                sleep_time = target_time - time.time()
+                if sleep_time > 0:
+                    time.sleep(sleep_time)
+        
+        except KeyboardInterrupt:
+            pass
+        
+        finally:
+            if input_handler:
+                try:
+                    input_handler.stop()
+                except:
+                    pass
+            if player:
+                try:
+                    player.stop()
+                except:
+                    pass
             self._cleanup_terminal()

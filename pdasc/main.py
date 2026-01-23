@@ -165,6 +165,14 @@ def cmd_website(args):
         app = ImageServer(font_path=str(files("pdasc.fonts").joinpath("CascadiaMono.ttf")))
         app.run(port=args.port)
 
+def cmd_emulator(args):
+    from pdretro import Emulator
+    converter = AsciiConverter(num_ascii=args.num_ascii, chunk_size=args.block_size, font_path=args.font)
+    displayer = AsciiDisplayer(converter, debug=args.debug)
+    emulator = Emulator(core_path=args.core)
+    emulator.load_game(args.rom)
+    displayer.display_emulator(emulator, not args.no_color, not args.no_audio)
+
 def main():
     parser = argparse.ArgumentParser(
         description="Convert images and videos to ASCII art",
@@ -286,6 +294,41 @@ Usage:
     )
     
     website_parser.set_defaults(func=cmd_website)
+    
+    emulator_parser = subparsers.add_parser(
+        'emulator',
+        help='Play a game with ascii graphics using a libretro core',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Usage:
+  %(prog)s -core snes9x_libretro.dll -rom f-zero.sfc
+  %(prog)s -core parallel_n64_libretro.dll -rom super_mario_64.z64
+        """
+    )
+    
+    emulator_parser.add_argument(
+        "-core",
+        type=str,
+        required=True,
+        help="Path to libretro core DLL"
+    )
+    
+    emulator_parser.add_argument(
+        "-rom",
+        type=str,
+        required=True,
+        help="Path to ROM file"
+    )
+    
+    emulator_parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Enable debug mode to show FPS and other debug info"
+    )
+    
+    add_common_args(emulator_parser)
+    
+    emulator_parser.set_defaults(func=cmd_emulator)
     
     args = parser.parse_args()
     
